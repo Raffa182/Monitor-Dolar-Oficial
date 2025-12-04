@@ -1,0 +1,183 @@
+Try AI directly in your favorite apps … Use Gemini to generate drafts and refine content, plus get Gemini Pro with access to Google's next-gen AI for $19.99 $0 for 1 month
+{
+  "meta": {
+    "instanceId": "generated_flow_dolar_oficial_1500"
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutes": 15
+            }
+          ]
+        }
+      },
+      "id": "schedule-trigger-dolar",
+      "name": "Schedule Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        460,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://dolarapi.com/v1/dolares/oficial",
+        "options": {}
+      },
+      "id": "http-request-dolar",
+      "name": "Consultar DolarAPI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        680,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "precio-asignacion-dolar",
+              "name": "precio_venta",
+              "value": "={{ $json.venta }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "edit-fields-dolar",
+      "name": "Limpiar Datos Dolar",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        900,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "condicion-dolar",
+              "leftValue": "={{ $json.precio_venta }}",
+              "rightValue": 1500,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "if-node-dolar",
+      "name": "Mayor a 1500?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "email@test.com",
+        "subject": "ALERTA: Dólar Oficial Superó $1500",
+        "message": "={{ 'Atención, el dólar oficial subió. Cotización de Venta actual: $' + $json.precio_venta }}",
+        "options": {}
+      },
+      "id": "gmail-node-true-dolar",
+      "name": "Email Alerta (>1500)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1380,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "sendTo": "email@test.com",
+        "subject": "Reporte: Dólar Oficial Bajo Control",
+        "message": "={{ 'El dólar sigue por debajo de $1500. Cotización actual: $' + $json.precio_venta }}",
+        "options": {}
+      },
+      "id": "gmail-node-false-dolar",
+      "name": "Email Info (<1500)",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        1380,
+        420
+      ]
+    }
+  ],
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Consultar DolarAPI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Consultar DolarAPI": {
+      "main": [
+        [
+          {
+            "node": "Limpiar Datos Dolar",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Limpiar Datos Dolar": {
+      "main": [
+        [
+          {
+            "node": "Mayor a 1500?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mayor a 1500?": {
+      "main": [
+        [
+          {
+            "node": "Email Alerta (>1500)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Email Info (<1500)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
